@@ -44,8 +44,20 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
-
-
+#define NUM_PATTERNS 9
+uint8_t patterns[NUM_PATTERNS][8] = {
+    {1, 1, 1, 0, 1, 0, 0, 1},
+    {1, 1, 0, 1, 0, 0, 1, 0},
+    {1, 0, 1, 0, 0, 1, 0, 0},
+    {0, 1, 0, 0, 1, 0, 0, 0},
+    {1, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 1, 0, 0, 0, 0, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0},
+    {1, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0}
+};
+uint8_t current_pattern = 0;
+int32_t delay_time = 1000; // Initial delay time of 1 second
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,6 +66,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
 void TIM16_IRQHandler(void);
+void Set_LED_Pattern(uint8_t pattern);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,7 +104,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // TODO: Start timer TIM16
-
+  HAL_TIM_Base_Start_IT(&htim16);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,11 +117,21 @@ int main(void)
 
     // TODO: Check pushbuttons to change timer delay
     
-    
+	  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_0)) {
+	        delay_time = 500; // 0.5 second delay
+	      } else if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_1)) {
+	        delay_time = 2000; // 2 seconds delay
+	      } else if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_2)) {
+	        delay_time = 1000; // 1 second delay
+	      } else if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_3)) {
+	        current_pattern = 0; // Reset to pattern 1
+	        Set_LED_Pattern(current_pattern);
+	      }
+	    }
 
   }
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
@@ -317,15 +340,31 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void Set_LED_Pattern(uint8_t pattern) {
 
+//    LL_GPIO_WriteOutputPort(GPIOB, patterns[pattern][0] << LED0_Pin |
+//                                    patterns[pattern][1] << LED1_Pin |
+//                                    patterns[pattern][2] << LED2_Pin |
+//                                    patterns[pattern][3] << LED3_Pin |
+//                                    patterns[pattern][4] << LED4_Pin |
+//                                    patterns[pattern][5] << LED5_Pin |
+//                                    patterns[pattern][6] << LED6_Pin |
+//                                    patterns[pattern][7] << LED7_Pin);
+}
 // Timer rolled over
 void TIM16_IRQHandler(void)
 {
 	// Acknowledge interrupt
 	HAL_TIM_IRQHandler(&htim16);
+	// Acknowledge interrupt
+	  HAL_TIM_IRQHandler(&htim16);
 
-	// TODO: Change LED pattern
-	// print something
+	  // Change LED pattern
+	  current_pattern = (current_pattern + 1) % NUM_PATTERNS;
+	  Set_LED_Pattern(current_pattern);
+
+	  // Update the timer period based on the delay_time
+	  __HAL_TIM_SET_AUTORELOAD(&htim16, delay_time - 1);
 
   
 }
