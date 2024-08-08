@@ -45,19 +45,22 @@ TIM_HandleTypeDef htim16;
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
 #define NUM_PATTERNS 9
-uint8_t patterns[NUM_PATTERNS][8] = {
-    {1, 1, 1, 0, 1, 0, 0, 1},
-    {1, 1, 0, 1, 0, 0, 1, 0},
-    {1, 0, 1, 0, 0, 1, 0, 0},
-    {0, 1, 0, 0, 1, 0, 0, 0},
-    {1, 0, 0, 1, 0, 0, 0, 0},
-    {0, 0, 1, 0, 0, 0, 0, 0},
-    {0, 1, 0, 0, 0, 0, 0, 0},
-    {1, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0}
+uint8_t patterns[9] = {
+    0b10010111,
+    0b01001011,
+    0b00100101,
+    0b00010010,
+    0b00001001,
+    0b00000100,
+    0b00000010,
+    0b00000001,
+    0b00000000
 };
 uint8_t current_pattern = 0;
 int32_t delay_time = 1000; // Initial delay time of 1 second
+
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,19 +120,21 @@ int main(void)
 
     // TODO: Check pushbuttons to change timer delay
     
-	  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_0)) {
-	        delay_time = 500; // 0.5 second delay
-	      } else if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_1)) {
-	        delay_time = 2000; // 2 seconds delay
-	      } else if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_2)) {
-	        delay_time = 1000; // 1 second delay
-	      } else if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_3)) {
-	        current_pattern = 0; // Reset to pattern 1
-	        Set_LED_Pattern(current_pattern);
-	      }
-	    }
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) != GPIO_PIN_SET) {
+      delay_time = 500; 
+    } else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1) != GPIO_PIN_SET) {
+      delay_time = 2000; 
+    } else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2) != GPIO_PIN_SET) {
+      delay_time = 1000; 
+    } else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3) != GPIO_PIN_SET) {
+      current_pattern = 0; 
+      Set_LED_Pattern(current_pattern);
+    }
 
+    // Small delay to debounce button presses (optional)
+    HAL_Delay(50);
   }
+}
   /* USER CODE END 3 */
 
 
@@ -341,15 +346,8 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void Set_LED_Pattern(uint8_t pattern) {
-
-//    LL_GPIO_WriteOutputPort(GPIOB, patterns[pattern][0] << LED0_Pin |
-//                                    patterns[pattern][1] << LED1_Pin |
-//                                    patterns[pattern][2] << LED2_Pin |
-//                                    patterns[pattern][3] << LED3_Pin |
-//                                    patterns[pattern][4] << LED4_Pin |
-//                                    patterns[pattern][5] << LED5_Pin |
-//                                    patterns[pattern][6] << LED6_Pin |
-//                                    patterns[pattern][7] << LED7_Pin);
+  LL_GPIO_ResetOutputPin(GPIOB,LED0_Pin | LED1_Pin | LED2_Pin | LED3_Pin | LED4_Pin | LED5_Pin | LED6_Pin | LED7_Pin);
+  LL_GPIO_SetOutputPin(GPIOB, patterns[pattern]);
 }
 // Timer rolled over
 void TIM16_IRQHandler(void)
